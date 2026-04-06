@@ -7,6 +7,7 @@ function App() {
   const [page, setPage] = useState(1)
   const [pagination, setPagination] = useState(null)
   const [loadingPage, setLoadingPage] = useState(false)
+  const [activeTab, setActiveTab] = useState('all')
 
   const loadPage = async (pageNumber = 1) => {
     setLoadingPage(true)
@@ -88,6 +89,8 @@ function App() {
     return bIsFav - aIsFav
   })
 
+  const favoriteCharacters = characters.filter(c => isFavorite(c.name))
+
   return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)', padding: 0 }}>
       {/* Header */}
@@ -103,62 +106,98 @@ function App() {
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 20px' }}>
         {/* Sección de personajes */}
         <div>
-          <h2 style={{ fontSize: 32, color: '#fff', marginBottom: 8, fontWeight: 700 }}>Personajes</h2>
-          <p style={{ color: '#cbd5e0', marginBottom: 24, fontSize: 15 }}>Descubre todos los guerreros del Cuerpo de Exterminadores de Demonios</p>
+          <h2 style={{ fontSize: 32, color: '#fff', marginBottom: 8, fontWeight: 700 }}>{activeTab === 'all' ? 'Personajes' : 'Favoritos'}</h2>
+          <p style={{ color: '#cbd5e0', marginBottom: 24, fontSize: 15 }}>{activeTab === 'all' ? 'Descubre Personajes' : 'Tus personajes favoritos guardados'}</p>
+
+          {/* Pestañas */}
+          <div style={{ display: 'flex', gap: 20, marginBottom: 24 }}>
+            <button
+              onClick={() => setActiveTab('all')}
+              style={{
+                padding: '10px 20px',
+                borderRadius: 8,
+                border: 'none',
+                background: activeTab === 'all' ? 'linear-gradient(90deg, #ff6ba6 0%, #ff1076 100%)' : 'rgba(255,255,255,0.1)',
+                color: '#fff',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              Todos los personajes
+            </button>
+            <button
+              onClick={() => setActiveTab('favorites')}
+              style={{
+                padding: '10px 20px',
+                borderRadius: 8,
+                border: 'none',
+                background: activeTab === 'favorites' ? 'linear-gradient(90deg, #ff6ba6 0%, #ff1076 100%)' : 'rgba(255,255,255,0.1)',
+                color: '#fff',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              Favoritos ({favoritos.length})
+            </button>
+          </div>
 
           {/* Paginación */}
-          <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 32, flexWrap: 'wrap' }}>
-            <button
-              onClick={goToPreviousPage}
-              disabled={loadingPage || !pagination || pagination.currentPage <= 1}
-              style={{
-                padding: '10px 20px',
-                borderRadius: 8,
-                border: 'none',
-                background: pagination?.currentPage > 1 ? 'linear-gradient(90deg, #ff6ba6 0%, #ff1076 100%)' : '#4a5568',
-                color: '#fff',
-                fontWeight: 600,
-                cursor: pagination?.currentPage > 1 ? 'pointer' : 'not-allowed',
-                opacity: pagination?.currentPage > 1 ? 1 : 0.5,
-                transition: 'all 0.3s ease',
-                fontSize: 14
-              }}
-            >
-              ← Anterior
-            </button>
-            <button
-              onClick={goToNextPage}
-              disabled={loadingPage || !pagination || pagination.currentPage >= pagination.totalPages}
-              style={{
-                padding: '10px 20px',
-                borderRadius: 8,
-                border: 'none',
-                background: pagination?.currentPage < pagination?.totalPages ? 'linear-gradient(90deg, #00d4ff 0%, #0099ff 100%)' : '#4a5568',
-                color: '#fff',
-                fontWeight: 600,
-                cursor: pagination?.currentPage < pagination?.totalPages ? 'pointer' : 'not-allowed',
-                opacity: pagination?.currentPage < pagination?.totalPages ? 1 : 0.5,
-                transition: 'all 0.3s ease',
-                fontSize: 14
-              }}
-            >
-              Siguiente →
-            </button>
-            {pagination && (
-              <div style={{ marginLeft: 'auto', display: 'flex', gap: 12, alignItems: 'center' }}>
-                <div style={{ background: 'rgba(255,255,255,0.1)', padding: '8px 16px', borderRadius: 6, border: '1px solid rgba(0,212,255,0.3)' }}>
-                  <span style={{ fontSize: 14, color: '#fff', fontWeight: 600 }}>
-                    Página {pagination.currentPage} de {pagination.totalPages}
-                  </span>
+          {activeTab === 'all' && (
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 32, flexWrap: 'wrap' }}>
+              <button
+                onClick={goToPreviousPage}
+                disabled={loadingPage || !pagination || pagination.currentPage <= 1}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: 8,
+                  border: 'none',
+                  background: pagination?.currentPage > 1 ? 'linear-gradient(90deg, #ff6ba6 0%, #ff1076 100%)' : '#4a5568',
+                  color: '#fff',
+                  fontWeight: 600,
+                  cursor: pagination?.currentPage > 1 ? 'pointer' : 'not-allowed',
+                  opacity: pagination?.currentPage > 1 ? 1 : 0.5,
+                  transition: 'all 0.3s ease',
+                  fontSize: 14
+                }}
+              >
+                ← Anterior
+              </button>
+              <button
+                onClick={goToNextPage}
+                disabled={loadingPage || !pagination || pagination.currentPage >= pagination.totalPages}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: 8,
+                  border: 'none',
+                  background: pagination?.currentPage < pagination?.totalPages ? 'linear-gradient(90deg, #00d4ff 0%, #0099ff 100%)' : '#4a5568',
+                  color: '#fff',
+                  fontWeight: 600,
+                  cursor: pagination?.currentPage < pagination?.totalPages ? 'pointer' : 'not-allowed',
+                  opacity: pagination?.currentPage < pagination?.totalPages ? 1 : 0.5,
+                  transition: 'all 0.3s ease',
+                  fontSize: 14
+                }}
+              >
+                Siguiente →
+              </button>
+              {pagination && (
+                <div style={{ marginLeft: 'auto', display: 'flex', gap: 12, alignItems: 'center' }}>
+                  <div style={{ background: 'rgba(255,255,255,0.1)', padding: '8px 16px', borderRadius: 6, border: '1px solid rgba(0,212,255,0.3)' }}>
+                    <span style={{ fontSize: 14, color: '#fff', fontWeight: 600 }}>
+                      Página {pagination.currentPage} de {pagination.totalPages}
+                    </span>
+                  </div>
+                  <span style={{ color: '#a0aec0', fontSize: 13 }}>{pagination.totalElements} personajes</span>
                 </div>
-                <span style={{ color: '#a0aec0', fontSize: 13 }}>{pagination.totalElements} personajes</span>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
 
           {/* Grid de personajes */}
           <div style={{ display: 'grid', gap: 20, gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))' }}>
-            {sortedCharacters.map((c) => {
+            {(activeTab === 'all' ? sortedCharacters : favoriteCharacters).map((c) => {
               const isFav = isFavorite(c.name)
               const favId = getFavoriteId(c.name)
               return (

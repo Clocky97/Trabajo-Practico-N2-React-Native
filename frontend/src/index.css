@@ -52,7 +52,9 @@
 
 body {
   margin: 0;
-}
+  background-image: url(./assets/background.png);
+  background-size: cover;
+  background-repeat: no-repeat;}
 
 #root {
   width: 1126px;
