@@ -6,8 +6,17 @@ const router = express.Router()
 const DB_PATH = "./data/favoritos.json"
 
 const readData = () => {
-  if (!fs.existsSync(DB_PATH)) return []
-  return JSON.parse(fs.readFileSync(DB_PATH))
+  try {
+    if (!fs.existsSync(DB_PATH)) {
+      fs.writeFileSync(DB_PATH, JSON.stringify([], null, 2))
+      return []
+    }
+    const data = fs.readFileSync(DB_PATH, 'utf8')
+    return data.trim() ? JSON.parse(data) : []
+  } catch (error) {
+    console.error('readData error:', error)
+    return []
+  }
 }
 
 const writeData = (data) => {
