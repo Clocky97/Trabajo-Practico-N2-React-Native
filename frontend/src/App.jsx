@@ -1,6 +1,159 @@
-import { useEffect, useState } from "react"
+import React, { memo, useCallback, useEffect, useMemo, useState } from "react"
 import axios from "axios"
 import { useFavorites } from "./context/FavoritesContext.jsx"
+
+const CharacterCard = memo(({ character, isFav, favId, onOpen, onAddFavorite, onEditFavorite, onDeleteFavorite }) => {
+  return (
+    <div
+      style={{
+        background: 'linear-gradient(135deg, rgba(31,55,99,0.8) 0%, rgba(15,52,96,0.9) 100%)',
+        borderRadius: 16,
+        overflow: 'hidden',
+        border: '2px solid rgba(0,212,255,0.2)',
+        backdrop: 'blur(10px)',
+        transition: 'all 0.3s ease',
+        transform: 'translateY(0)',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+        cursor: 'pointer',
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        position: 'relative'
+      }}
+      onClick={() => onOpen(character)}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = 'translateY(-8px)'
+        e.currentTarget.style.border = '2px solid rgba(255,107,166,0.6)'
+        e.currentTarget.style.boxShadow = '0 16px 40px rgba(255,107,166,0.3)'
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'translateY(0)'
+        e.currentTarget.style.border = '2px solid rgba(0,212,255,0.2)'
+        e.currentTarget.style.boxShadow = '0 8px 32px rgba(0,0,0,0.2)'
+      }}
+    >
+      {isFav && (
+        <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 10, fontSize: 24 }}>⭐</div>
+      )}
+
+      {character.img && (
+        <div style={{ position: 'relative', overflow: 'hidden', height: 200, background: '#fff', flex: '0 0 auto' }}>
+          <img
+            src={character.img}
+            alt={character.name}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain',
+              padding: '8px',
+              transition: 'transform 0.3s ease'
+            }}
+            onMouseEnter={(e) => { e.target.style.transform = 'scale(1.05)' }}
+            onMouseLeave={(e) => { e.target.style.transform = 'scale(1)' }}
+          />
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.2) 100%)' }} />
+        </div>
+      )}
+      <div style={{ padding: 16, flex: '1', display: 'flex', flexDirection: 'column' }}>
+        <h3 style={{ margin: '0 0 12px 0', fontSize: 16, fontWeight: 700, color: '#fff' }}>{character.name}</h3>
+        <div style={{ display: 'grid', gap: 6, marginBottom: 12, fontSize: 12 }}>
+          <p style={{ margin: 0, color: '#cbd5e0' }}>
+            <span style={{ color: '#ff6ba6', fontWeight: 600 }}>Edad:</span> {character.age ?? 'N/A'}
+          </p>
+          <p style={{ margin: 0, color: '#cbd5e0' }}>
+            <span style={{ color: '#00d4ff', fontWeight: 600 }}>Género:</span> {character.gender ?? 'N/A'}
+          </p>
+          <p style={{ margin: 0, color: '#cbd5e0' }}>
+            <span style={{ color: '#a78bfa', fontWeight: 600 }}>Raza:</span> {character.race ?? 'N/A'}
+          </p>
+        </div>
+        <p style={{ margin: '0 0 12px 0', fontSize: 11, lineHeight: 1.5, color: '#a0aec0', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', flex: 1 }}>
+          {character.description || 'Sin descripción disponible.'}
+        </p>
+        <div style={{ display: 'flex', gap: 8, marginTop: 'auto' }}>
+          {isFav ? (
+            <>
+              <button
+                onClick={(e) => { e.stopPropagation(); onEditFavorite(favId, character.name) }}
+                style={{
+                  flex: 1,
+                  padding: '8px 12px',
+                  borderRadius: 6,
+                  border: 'none',
+                  background: 'linear-gradient(90deg, #a78bfa 0%, #7c3aed 100%)',
+                  color: '#fff',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  fontSize: 12,
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.boxShadow = '0 4px 15px rgba(167,139,250,0.4)'
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.boxShadow = 'none'
+                }}
+              >
+                Editar
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); onDeleteFavorite(favId) }}
+                style={{
+                  flex: 1,
+                  padding: '8px 12px',
+                  borderRadius: 6,
+                  border: 'none',
+                  background: 'linear-gradient(90deg, #ff6ba6 0%, #ff1076 100%)',
+                  color: '#fff',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  fontSize: 12,
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.boxShadow = '0 4px 15px rgba(255,107,166,0.4)'
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.boxShadow = 'none'
+                }}
+              >
+                Eliminar
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={(e) => { e.stopPropagation(); onAddFavorite(character) }}
+              style={{
+                width: '100%',
+                padding: '10px 16px',
+                borderRadius: 8,
+                border: 'none',
+                background: 'rgba(255,255,255,0.1)',
+                color: '#fff',
+                fontWeight: 600,
+                cursor: 'pointer',
+                fontSize: 13,
+                transition: 'all 0.3s ease',
+                borderColor: 'rgba(0,212,255,0.3)',
+                borderWidth: '1px'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.background = 'rgba(255,255,255,0.15)'
+                e.target.style.borderColor = 'rgba(0,212,255,0.6)'
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = 'rgba(255,255,255,0.1)'
+                e.target.style.borderColor = 'rgba(0,212,255,0.3)'
+              }}
+            >
+              Agregar a favoritos
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+})
 
 function App() {
   const [characters, setCharacters] = useState([])
@@ -14,7 +167,7 @@ function App() {
   const [selectedCharacter, setSelectedCharacter] = useState(null)
   const { favorites, addFavorite, editFavorite, deleteFavorite } = useFavorites()
 
-  const loadPage = async (pageNumber = 1) => {
+  const loadPage = useCallback(async (pageNumber = 1) => {
     setLoadingPage(true)
     try {
       const res = await axios.get(`http://localhost:5000/api/characters/external?page=${pageNumber}`)
@@ -28,9 +181,9 @@ function App() {
     } finally {
       setLoadingPage(false)
     }
-  }
+  }, [])
 
-  const loadAllCharacters = async () => {
+  const loadAllCharacters = useCallback(async () => {
     setLoadingAll(true)
     try {
       const res = await axios.get(`http://localhost:5000/api/characters/external`)
@@ -41,7 +194,7 @@ function App() {
     } finally {
       setLoadingAll(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
     if (activeTab === 'all') {
@@ -51,63 +204,66 @@ function App() {
         loadPage(1)
       }
     }
-  }, [activeTab, viewMode])
+  }, [activeTab, viewMode, loadAllCharacters, loadPage])
 
-  const toggleViewMode = () => {
+  const toggleViewMode = useCallback(() => {
     setViewMode(prev => prev === 'paged' ? 'all' : 'paged')
-  }
+  }, [])
 
-  const agregarFavorito = async (character) => {
+  const agregarFavorito = useCallback(async (character) => {
     await addFavorite(character)
-  }
+  }, [addFavorite])
 
-  const eliminarFavorito = async (id) => {
+  const eliminarFavorito = useCallback(async (id) => {
     await deleteFavorite(id)
-  }
+  }, [deleteFavorite])
 
-  const editarFavorito = async (id, currentName) => {
+  const editarFavorito = useCallback(async (id, currentName) => {
     const newName = prompt("Editar nombre del favorito:", currentName)
     if (newName && newName !== currentName) {
       await editFavorite(id, newName)
     }
-  }
+  }, [editFavorite])
 
-  const openCharacter = (character) => {
+  const openCharacter = useCallback((character) => {
     setSelectedCharacter(character)
-  }
+  }, [])
 
-  const closeCharacter = () => {
+  const closeCharacter = useCallback(() => {
     setSelectedCharacter(null)
-  }
+  }, [])
 
-  const isFavorite = (characterName) => {
+  const isFavorite = useCallback((characterName) => {
     return favorites.some(f => f.name === characterName)
-  }
+  }, [favorites])
 
-  const getFavoriteId = (characterName) => {
-    const fav = favorites.find(f => f.name === characterName)
-    return fav?.id
-  }
+  const getFavoriteId = useCallback((characterName) => {
+    return favorites.find(f => f.name === characterName)?.id
+  }, [favorites])
 
-  const goToPreviousPage = () => {
+  const goToPreviousPage = useCallback(() => {
     if (pagination?.currentPage > 1) {
       loadPage(pagination.currentPage - 1)
     }
-  }
+  }, [loadPage, pagination])
 
-  const goToNextPage = () => {
+  const goToNextPage = useCallback(() => {
     if (pagination?.currentPage < pagination?.totalPages) {
       loadPage(pagination.currentPage + 1)
     }
-  }
+  }, [loadPage, pagination])
 
-  const sortedCharacters = [...(viewMode === 'all' ? allCharacters : characters)].sort((a, b) => {
-    const aIsFav = isFavorite(a.name) ? 1 : 0
-    const bIsFav = isFavorite(b.name) ? 1 : 0
-    return bIsFav - aIsFav
-  })
+  const sortedCharacters = useMemo(() => {
+    return [...(viewMode === 'all' ? allCharacters : characters)].sort((a, b) => {
+      const aIsFav = isFavorite(a.name) ? 1 : 0
+      const bIsFav = isFavorite(b.name) ? 1 : 0
+      return bIsFav - aIsFav
+    })
+  }, [viewMode, allCharacters, characters, isFavorite])
 
-  const favoriteCharacters = (viewMode === 'all' ? allCharacters : characters).filter(c => isFavorite(c.name))
+  const favoriteCharacters = useMemo(() => {
+    return (viewMode === 'all' ? allCharacters : characters).filter(c => isFavorite(c.name))
+  }, [viewMode, allCharacters, characters, isFavorite])
 
   return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)', padding: 0 }}>
@@ -251,157 +407,16 @@ function App() {
               const isFav = isFavorite(c.name)
               const favId = getFavoriteId(c.name)
               return (
-                <div
+                <CharacterCard
                   key={c.id || c.name}
-                  style={{
-                    background: 'linear-gradient(135deg, rgba(31,55,99,0.8) 0%, rgba(15,52,96,0.9) 100%)',
-                    borderRadius: 16,
-                    overflow: 'hidden',
-                    border: '2px solid rgba(0,212,255,0.2)',
-                    backdrop: 'blur(10px)',
-                    transition: 'all 0.3s ease',
-                    transform: 'translateY(0)',
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    height: '100%',
-                    position: 'relative'
-                  }}
-                  onClick={() => openCharacter(c)}
-                onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-8px)'
-                    e.currentTarget.style.border = '2px solid rgba(255,107,166,0.6)'
-                    e.currentTarget.style.boxShadow = '0 16px 40px rgba(255,107,166,0.3)'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)'
-                    e.currentTarget.style.border = '2px solid rgba(0,212,255,0.2)'
-                    e.currentTarget.style.boxShadow = '0 8px 32px rgba(0,0,0,0.2)'
-                  }}
-                >
-                  {isFav && (
-                    <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 10, fontSize: 24 }}>⭐</div>
-                  )}
-
-                  {c.img && (
-                    <div style={{ position: 'relative', overflow: 'hidden', height: 200, background: '#fff', flex: '0 0 auto' }}>
-                      <img
-                        src={c.img}
-                        alt={c.name}
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'contain',
-                          padding: '8px',
-                          transition: 'transform 0.3s ease'
-                        }}
-                        onMouseEnter={(e) => { e.target.style.transform = 'scale(1.05)' }}
-                        onMouseLeave={(e) => { e.target.style.transform = 'scale(1)' }}
-                      />
-                      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.2) 100%)' }} />
-                    </div>
-                  )}
-                  <div style={{ padding: 16, flex: '1', display: 'flex', flexDirection: 'column' }}>
-                    <h3 style={{ margin: '0 0 12px 0', fontSize: 16, fontWeight: 700, color: '#fff' }}>{c.name}</h3>
-                    <div style={{ display: 'grid', gap: 6, marginBottom: 12, fontSize: 12 }}>
-                      <p style={{ margin: 0, color: '#cbd5e0' }}>
-                        <span style={{ color: '#ff6ba6', fontWeight: 600 }}>Edad:</span> {c.age ?? 'N/A'}
-                      </p>
-                      <p style={{ margin: 0, color: '#cbd5e0' }}>
-                        <span style={{ color: '#00d4ff', fontWeight: 600 }}>Género:</span> {c.gender ?? 'N/A'}
-                      </p>
-                      <p style={{ margin: 0, color: '#cbd5e0' }}>
-                        <span style={{ color: '#a78bfa', fontWeight: 600 }}>Raza:</span> {c.race ?? 'N/A'}
-                      </p>
-                    </div>
-                    <p style={{ margin: '0 0 12px 0', fontSize: 11, lineHeight: 1.5, color: '#a0aec0', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', flex: 1 }}>
-                      {c.description || 'Sin descripción disponible.'}
-                    </p>
-                    
-                    {/* Botones de acción */}
-                    <div style={{ display: 'flex', gap: 8, marginTop: 'auto' }}>
-                      {isFav ? (
-                        <>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); editarFavorito(favId, c.name) }}
-                            style={{
-                              flex: 1,
-                              padding: '8px 12px',
-                              borderRadius: 6,
-                              border: 'none',
-                              background: 'linear-gradient(90deg, #a78bfa 0%, #7c3aed 100%)',
-                              color: '#fff',
-                              fontWeight: 600,
-                              cursor: 'pointer',
-                              fontSize: 12,
-                              transition: 'all 0.3s ease'
-                            }}
-                            onMouseEnter={(e) => {
-                              e.target.style.boxShadow = '0 4px 15px rgba(167,139,250,0.4)'
-                            }}
-                            onMouseLeave={(e) => {
-                              e.target.style.boxShadow = 'none'
-                            }}
-                          >
-                            Editar
-                          </button>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); eliminarFavorito(favId) }}
-                            style={{
-                              flex: 1,
-                              padding: '8px 12px',
-                              borderRadius: 6,
-                              border: 'none',
-                              background: 'linear-gradient(90deg, #ff6ba6 0%, #ff1076 100%)',
-                              color: '#fff',
-                              fontWeight: 600,
-                              cursor: 'pointer',
-                              fontSize: 12,
-                              transition: 'all 0.3s ease'
-                            }}
-                            onMouseEnter={(e) => {
-                              e.target.style.boxShadow = '0 4px 15px rgba(255,107,166,0.4)'
-                            }}
-                            onMouseLeave={(e) => {
-                              e.target.style.boxShadow = 'none'
-                            }}
-                          >
-                            Eliminar
-                          </button>
-                        </>
-                      ) : (
-                        <button
-                          onClick={(e) => { e.stopPropagation(); agregarFavorito(c) }}
-                          style={{
-                            width: '100%',
-                            padding: '10px 16px',
-                            borderRadius: 8,
-                            border: 'none',
-                            background: 'rgba(255,255,255,0.1)',
-                            color: '#fff',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                            fontSize: 13,
-                            transition: 'all 0.3s ease',
-                            borderColor: 'rgba(0,212,255,0.3)',
-                            borderWidth: '1px'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.target.style.background = 'rgba(255,255,255,0.15)'
-                            e.target.style.borderColor = 'rgba(0,212,255,0.6)'
-                          }}
-                          onMouseLeave={(e) => {
-                            e.target.style.background = 'rgba(255,255,255,0.1)'
-                            e.target.style.borderColor = 'rgba(0,212,255,0.3)'
-                          }}
-                        >
-                          Agregar a favoritos
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                  character={c}
+                  isFav={isFav}
+                  favId={favId}
+                  onOpen={openCharacter}
+                  onAddFavorite={agregarFavorito}
+                  onEditFavorite={editarFavorito}
+                  onDeleteFavorite={eliminarFavorito}
+                />
               )
             })}
           </div>

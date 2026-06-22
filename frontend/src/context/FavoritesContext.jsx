@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useCallback, useMemo } from 'react';
 import axios from 'axios';
 
 const initialState = {
@@ -67,7 +67,7 @@ const FavoritesContext = createContext();
 export const FavoritesProvider = ({ children }) => {
   const [state, dispatch] = useReducer(favoritesReducer, initialState);
 
-  const loadFavorites = async () => {
+  const loadFavorites = useCallback(async () => {
     dispatch({ type: SET_LOADING, payload: true });
     try {
       const res = await axios.get("http://localhost:5000/api/characters");
@@ -76,9 +76,9 @@ export const FavoritesProvider = ({ children }) => {
       console.error('Error loading favorites:', error);
       dispatch({ type: SET_ERROR, payload: error.message });
     }
-  };
+  }, []);
 
-  const addFavorite = async (character) => {
+  const addFavorite = useCallback(async (character) => {
     dispatch({ type: SET_LOADING, payload: true });
     try {
       const res = await axios.post("http://localhost:5000/api/characters", {
@@ -89,9 +89,9 @@ export const FavoritesProvider = ({ children }) => {
       console.error('Error adding favorite:', error);
       dispatch({ type: SET_ERROR, payload: error.message });
     }
-  };
+  }, []);
 
-  const editFavorite = async (id, newName) => {
+  const editFavorite = useCallback(async (id, newName) => {
     dispatch({ type: SET_LOADING, payload: true });
     try {
       const res = await axios.put(`http://localhost:5000/api/characters/${id}`, {
@@ -102,9 +102,9 @@ export const FavoritesProvider = ({ children }) => {
       console.error('Error editing favorite:', error);
       dispatch({ type: SET_ERROR, payload: error.message });
     }
-  };
+  }, []);
 
-  const deleteFavorite = async (id) => {
+  const deleteFavorite = useCallback(async (id) => {
     dispatch({ type: SET_LOADING, payload: true });
     try {
       await axios.delete(`http://localhost:5000/api/characters/${id}`);
@@ -113,19 +113,19 @@ export const FavoritesProvider = ({ children }) => {
       console.error('Error deleting favorite:', error);
       dispatch({ type: SET_ERROR, payload: error.message });
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadFavorites();
   }, []);
 
-  const value = {
+  const value = useMemo(() => ({
     ...state,
     addFavorite,
     editFavorite,
     deleteFavorite,
     loadFavorites
-  };
+  }), [state, addFavorite, editFavorite, deleteFavorite, loadFavorites]);
 
   return (
     <FavoritesContext.Provider value={value}>
